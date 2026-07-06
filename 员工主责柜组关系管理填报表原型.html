@@ -77,6 +77,8 @@
     }
     .btn-primary { background: #1882e8; color: #fff; }
     .btn-light { background: #eef5ff; color: #2071cb; }
+    .btn-outline { background: #fff; color: #006fe8; border: 1px solid #b9d4f6; }
+    .btn-disabled { background: #eef2f7; color: #9aa9ba; border: 1px solid #d4dde9; cursor: not-allowed; }
     .btn-ghost { background: #fff; color: #2071cb; border: 1px solid #c6daf4; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
     .toolbar-left, .toolbar-right { display: flex; gap: 10px; align-items: center; }
@@ -165,8 +167,8 @@
     </div>
 
     <div class="toolbar">
-      <div class="toolbar-left"><button class="btn btn-primary" onclick="openDrawer('新增关系')">新增</button><button class="btn btn-light" onclick="toast('请选择要删除的数据')">批量删除</button></div>
-      <div class="toolbar-right"><button class="btn btn-light" onclick="toast('模板下载中')">下载模板</button><button class="btn btn-light" onclick="toast('导入弹窗示意')">导入</button><button class="btn btn-primary" onclick="toast('数据已提交')">提交</button></div>
+      <div class="toolbar-left"><button class="btn btn-primary" onclick="openDrawer('新增关系')">新增</button><button class="btn btn-disabled" onclick="toast('请先选择一条数据')">修改</button><button class="btn btn-outline" onclick="toast('导入弹窗示意')">导入</button><button class="btn btn-disabled" onclick="toast('请选择要删除的数据')">▥ 批量删除</button></div>
+      <div class="toolbar-right"></div>
     </div>
 
     <div class="table-card">
