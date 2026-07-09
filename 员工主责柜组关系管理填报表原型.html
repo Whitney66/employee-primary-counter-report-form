@@ -59,19 +59,41 @@
       color: #223b5a; min-width: 168px; outline: none;
     }
     .month-picker { position: relative; display: inline-flex; align-items: center; }
-    .month-picker .input, .month-picker input { padding-right: 34px; }
-    .month-picker:after {
-      content: ""; position: absolute; right: 11px; width: 14px; height: 14px; pointer-events: none;
-      background:
-        linear-gradient(#6c7f98, #6c7f98) 3px 5px / 8px 1px no-repeat,
-        linear-gradient(#6c7f98, #6c7f98) 3px 8px / 8px 1px no-repeat,
-        linear-gradient(#6c7f98, #6c7f98) 3px 11px / 5px 1px no-repeat;
-      border: 1px solid #6c7f98; border-radius: 2px;
+    .month-range-input {
+      width: 260px; min-width: 260px; height: 32px; border: 1px solid #cbd8e8; border-radius: 4px; background: #fff;
+      color: #223b5a; display: flex; align-items: center; justify-content: center; gap: 14px; cursor: pointer;
     }
-    .month-picker:before {
-      content: ""; position: absolute; right: 13px; top: 8px; width: 10px; height: 3px; pointer-events: none;
-      border-top: 2px solid #6c7f98; border-bottom: 1px solid #6c7f98;
+    .month-picker.open .month-range-input { border-color: #1882e8; box-shadow: 0 0 0 1px #1882e8 inset; }
+    .month-icon {
+      width: 15px; height: 15px; border: 1px solid #aab7c8; border-radius: 2px; position: relative; flex: none;
     }
+    .month-icon:before {
+      content: ""; position: absolute; left: 2px; right: 2px; top: 4px; border-top: 1px solid #aab7c8;
+    }
+    .month-icon:after {
+      content: ""; position: absolute; left: 4px; top: -3px; width: 5px; height: 4px; border-left: 1px solid #aab7c8; border-right: 1px solid #aab7c8;
+    }
+    .month-placeholder { color: #a8b1c0; font-size: 14px; }
+    .month-separator { color: #223b5a; }
+    .month-value { color: #223b5a; }
+    .month-panel {
+      display: none; position: absolute; left: 0; top: 38px; width: 640px; height: 382px; background: #fff; z-index: 18;
+      border: 1px solid #d8e0ea; box-shadow: 0 12px 26px rgba(31, 57, 88, .16); border-radius: 2px;
+    }
+    .month-picker.open .month-panel { display: flex; }
+    .drawer-month-picker, .drawer-month-picker .month-range-input { width: 100%; }
+    .drawer-month-picker .month-panel { left: auto; right: 0; }
+    .month-shortcuts { width: 150px; border-right: 1px solid #e0e5ec; padding: 12px 0; }
+    .month-shortcut { height: 40px; display: flex; align-items: center; padding-left: 22px; color: #2e4057; cursor: pointer; font-size: 16px; }
+    .month-shortcut:hover, .month-shortcut.active { color: #1882e8; background: #eef6ff; }
+    .month-main { flex: 1; padding: 24px 32px; }
+    .month-year { display: flex; align-items: center; justify-content: space-between; color: #30465f; font-size: 24px; font-weight: 700; }
+    .year-arrow { cursor: pointer; color: #0f2742; font-size: 28px; line-height: 1; padding: 0 8px; }
+    .month-grid { display: grid; grid-template-columns: repeat(4, 1fr); row-gap: 50px; margin-top: 48px; }
+    .month-cell { height: 34px; display: flex; align-items: center; justify-content: center; color: #2e4057; font-size: 18px; cursor: pointer; border-radius: 3px; }
+    .month-cell:hover { color: #1882e8; background: #eef6ff; }
+    .month-cell.in-range { background: #eef6ff; color: #1882e8; }
+    .month-cell.selected { color: #fff; background: #1882e8; font-weight: 700; }
     .select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #6c7f98 50%), linear-gradient(135deg, #6c7f98 50%, transparent 50%); background-position: calc(100% - 16px) 13px, calc(100% - 11px) 13px; background-size: 5px 5px; background-repeat: no-repeat; }
     .multi-select-wrap { position: relative; }
     .multi-select-input { cursor: pointer; padding-right: 32px; background: #fff; }
@@ -187,7 +209,7 @@
           <div class="col" id="counterList"></div>
         </div>
       </div>
-      <div class="form-item"><label>月份</label><span class="month-picker"><input class="input" value="2026-07" readonly /></span></div>
+      <div class="form-item"><label>月份</label><div class="month-picker" id="filterMonthPicker"></div></div>
       <div class="form-item"><label>工号</label><input class="input" placeholder="请输入工号" /></div>
       <div class="form-item"><label>姓名</label><input class="input" placeholder="请输入姓名" /></div>
       <button class="btn btn-primary" onclick="toast('查询成功')">⌕ 查询</button><button class="btn btn-light" onclick="toast('已重置查询条件')">↻ 重置</button>
@@ -212,7 +234,7 @@
     <div class="drawer-body">
       <div class="field"><label>门店</label><select><option>7222</option></select></div>
       <div class="field"><label>团队名称</label><select><option>T3香化</option><option>T3烟酒</option><option>T3精品专卖</option><option>T3精品综合</option><option>T3入境</option></select></div>
-      <div class="field"><label>月份</label><span class="month-picker"><input value="2026-07" readonly /></span></div>
+      <div class="field"><label>月份</label><div class="month-picker drawer-month-picker" id="drawerMonthPicker"></div></div>
       <div class="field"><label>姓名</label><input id="nameInput" placeholder="请输入姓名" value="" /></div>
       <div class="field"><label>角色</label><select><option>总店长</option><option>店长</option><option>店助</option></select></div>
       <div class="field"><label>团队目标销售额（元）</label><input placeholder="请输入团队目标销售额" value="56000" /></div>
@@ -245,6 +267,82 @@
     function render() {
       document.getElementById('tbody').innerHTML = rows.map(r => `<tr><td><span class="checkbox"></span></td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td><td><a class="link" onclick="openDrawer('复制关系')">复制</a><a class="link" onclick="openDrawer('修改关系','${r[3]}')">修改</a><a class="link" onclick="toast('删除确认示意')">删除</a></td></tr>`).join('');
     }
+    const monthLabels = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+    const monthPickerState = {};
+    function formatMonth(value) {
+      const year = Math.floor(value / 12);
+      const month = value % 12 + 1;
+      return year + '-' + String(month).padStart(2, '0');
+    }
+    function monthValue(year, monthIndex) { return year * 12 + monthIndex; }
+    function createMonthPicker(id) {
+      const el = document.getElementById(id);
+      monthPickerState[id] = { year: 2026, start: monthValue(2026, 6), end: monthValue(2026, 6), picking: 'start', shortcut: '' };
+      el.innerHTML = `<div class="month-range-input" onclick="toggleMonthPicker(event,'${id}')"><span class="month-icon"></span><span class="month-start month-value"></span><span class="month-separator">-</span><span class="month-end month-value"></span></div><div class="month-panel"><div class="month-shortcuts"><div class="month-shortcut" onclick="pickMonthShortcut(event,'${id}','thisMonth')">本月</div><div class="month-shortcut" onclick="pickMonthShortcut(event,'${id}','lastMonth')">上月</div><div class="month-shortcut" onclick="pickMonthShortcut(event,'${id}','last3')">近3个月</div><div class="month-shortcut" onclick="pickMonthShortcut(event,'${id}','quarter')">本季</div><div class="month-shortcut" onclick="pickMonthShortcut(event,'${id}','year')">今年</div><div class="month-shortcut" onclick="pickMonthShortcut(event,'${id}','lastYear')">去年</div></div><div class="month-main"><div class="month-year"><span class="year-arrow" onclick="changeMonthYear(event,'${id}',-1)">«</span><span class="month-year-text"></span><span class="year-arrow" onclick="changeMonthYear(event,'${id}',1)">»</span></div><div class="month-grid"></div></div></div>`;
+      renderMonthPicker(id);
+    }
+    function renderMonthPicker(id) {
+      const picker = document.getElementById(id);
+      const state = monthPickerState[id];
+      picker.querySelector('.month-start').innerText = formatMonth(state.start);
+      picker.querySelector('.month-end').innerText = formatMonth(state.end);
+      picker.querySelector('.month-year-text').innerText = state.year + ' 年';
+      picker.querySelectorAll('.month-shortcut').forEach(item => item.classList.remove('active'));
+      if (state.shortcut) picker.querySelector(`[onclick*="${state.shortcut}"]`)?.classList.add('active');
+      picker.querySelector('.month-grid').innerHTML = monthLabels.map((label, index) => {
+        const value = monthValue(state.year, index);
+        const selected = value === state.start || value === state.end;
+        const inRange = value > state.start && value < state.end;
+        return `<div class="month-cell ${selected ? 'selected' : ''} ${inRange ? 'in-range' : ''}" onclick="pickMonth(event,'${id}',${index})">${label}</div>`;
+      }).join('');
+    }
+    function toggleMonthPicker(event, id) {
+      event.stopPropagation();
+      document.querySelectorAll('.month-picker').forEach(item => { if (item.id !== id) item.classList.remove('open'); });
+      document.getElementById(id).classList.toggle('open');
+    }
+    function changeMonthYear(event, id, step) {
+      event.stopPropagation();
+      monthPickerState[id].year += step;
+      renderMonthPicker(id);
+    }
+    function pickMonth(event, id, monthIndex) {
+      event.stopPropagation();
+      const state = monthPickerState[id];
+      const value = monthValue(state.year, monthIndex);
+      state.shortcut = '';
+      if (state.picking === 'start') {
+        state.start = value;
+        state.end = value;
+        state.picking = 'end';
+      } else {
+        state.end = value;
+        if (state.end < state.start) [state.start, state.end] = [state.end, state.start];
+        state.picking = 'start';
+        document.getElementById(id).classList.remove('open');
+      }
+      renderMonthPicker(id);
+    }
+    function pickMonthShortcut(event, id, type) {
+      event.stopPropagation();
+      const state = monthPickerState[id];
+      const now = monthValue(2026, 6);
+      const year = 2026;
+      const ranges = {
+        thisMonth: [now, now],
+        lastMonth: [now - 1, now - 1],
+        last3: [now - 2, now],
+        quarter: [monthValue(year, 6), monthValue(year, 8)],
+        year: [monthValue(year, 0), now],
+        lastYear: [monthValue(year - 1, 0), monthValue(year - 1, 11)]
+      };
+      [state.start, state.end] = ranges[type];
+      state.year = Math.floor(state.end / 12);
+      state.picking = 'start';
+      state.shortcut = type;
+      renderMonthPicker(id);
+      document.getElementById(id).classList.remove('open');
+    }
     function renderCounterTeams(activeTeam = Object.keys(counterGroups)[0]) {
       document.getElementById('counterTeams').innerHTML = Object.keys(counterGroups).map(team => `<div class="tree-row ${team === activeTeam ? 'selected' : ''}" onclick="renderCounterTeams('${team}')"><span class="checkbox"></span>${team}<span class="arrow">›</span></div>`).join('');
       document.getElementById('counterList').innerHTML = counterGroups[activeTeam].map(counter => `<div class="tree-row" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
@@ -273,7 +371,10 @@
       if(!e.target.closest('#cascade')) document.getElementById('cascade').classList.remove('open');
       if(!e.target.closest('#counterCascade')) document.getElementById('counterCascade').classList.remove('open');
       if(!e.target.closest('#storeMulti')) document.getElementById('storeMulti').classList.remove('open');
+      if(!e.target.closest('.month-picker')) document.querySelectorAll('.month-picker').forEach(item => item.classList.remove('open'));
     });
+    createMonthPicker('filterMonthPicker');
+    createMonthPicker('drawerMonthPicker');
     renderCounterTeams();
     render();
   </script>
