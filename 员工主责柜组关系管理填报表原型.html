@@ -103,7 +103,7 @@
       border: 1px solid #c7d4e5; box-shadow: 0 10px 24px rgba(45, 72, 110, .18); border-radius: 2px; padding: 6px 0;
     }
     .multi-select-wrap.open .multi-select-panel { display: block; }
-    .counter-select-panel { width: 220px; max-height: 320px; overflow: auto; }
+    .counter-select-panel { width: 260px; max-height: 320px; overflow: auto; }
     .multi-option { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; cursor: pointer; }
     .multi-option:hover { background: #eef6ff; color: #0b72dc; }
     .checkbox.checked { background: #1882e8; border-color: #1882e8; position: relative; }
@@ -207,7 +207,7 @@
     </div>
 
     <div class="toolbar">
-      <div class="toolbar-left"><button class="btn btn-primary" onclick="openDrawer('新增关系')">新增</button><button class="btn btn-disabled" onclick="toast('请先选择一条数据')">修改</button><button class="btn btn-outline" onclick="toast('导入弹窗示意')">导入</button><button class="btn btn-disabled" onclick="toast('请选择要删除的数据')">▥ 批量删除</button></div>
+      <div class="toolbar-left"><button class="btn btn-primary" onclick="openDrawer('新增关系')">新增</button><button class="btn btn-outline" onclick="toast('导入弹窗示意')">导入</button><button class="btn btn-disabled" onclick="toast('请选择要删除的数据')">▥ 批量删除</button></div>
       <div class="toolbar-right"></div>
     </div>
 
@@ -244,6 +244,7 @@
     };
     const names = ['蔡海晓','唐伟','陈亚琳','胡巧菊','王一诺','赵敏','李明','刘佳','周晴','吴越','孙晨','黄静'];
     const roles = ['总店长','店长','店助'];
+    const selectedCounters = new Set();
     const rows = Object.entries(counterGroups).flatMap(([team, counters]) => counters.map((counter, index) => [
       team,
       counter,
@@ -335,13 +336,14 @@
     }
     function renderCounterOptions() {
       const counters = Object.values(counterGroups).flat();
-      document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="pickCounter(event,'${counter}')">${counter}</div>`).join('');
+      document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
     }
     function toggleCounterSelect(){ document.getElementById('counterSelect').classList.toggle('open'); }
-    function pickCounter(event, counter){
+    function toggleCounterOption(event, counter){
       event.stopPropagation();
-      document.getElementById('counterFilter').value = counter;
-      document.getElementById('counterSelect').classList.remove('open');
+      selectedCounters.has(counter) ? selectedCounters.delete(counter) : selectedCounters.add(counter);
+      document.getElementById('counterFilter').value = [...selectedCounters].join(',');
+      renderCounterOptions();
     }
     function toggleStoreMulti(){ document.getElementById('storeMulti').classList.toggle('open'); }
     function toggleStoreOption(event){
