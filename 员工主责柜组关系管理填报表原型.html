@@ -415,10 +415,18 @@
     function handleImportFile(input){ if (input.files.length) toast('已选择文件：' + input.files[0].name); }
     function confirmImport(){ closeImportModal(); toast('导入校验通过，数据已提交'); }
     function downloadTemplate(){
+      const rules = [
+        ['填写说明','请从“填写区”下方开始录入或粘贴数据，说明区内容不要删除。'],
+        ['校验规则','唯一值按“月份 + 主责柜组 + 员工姓名 + 工号”校验，重复数据提交或导入时弹窗提醒。'],
+        ['必填规则','门店、团队名称、主责柜组、月份、工号、姓名、角色为必填；工号必须为8位数字；月份格式为YYYY-MM。'],
+        ['分区规则','仅柜组72225101和72225104需要填写分区；其他柜组无需填写，填写则提示清空。'],
+        [],
+        ['填写区'],
+      ];
       const header = ['门店','团队名称','主责柜组','分区','月份','工号','姓名','角色'];
       const sample = ['7222','T3入境','72225101','入境区','2026-07','00001234','张三','店长'];
       const note = ['7222','T3入境','72225104','入境区','2026-07','00005678','李四','店助'];
-      const csv = [header, sample, note].map(row => row.join(',')).join('\n');
+      const csv = [...rules, header, sample, note].map(row => row.join(',')).join('\n');
       const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
