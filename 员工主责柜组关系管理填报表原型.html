@@ -149,10 +149,22 @@
       width: 560px; max-width: calc(100vw - 48px); max-height: calc(100vh - 64px); border-radius: 4px;
       display: flex; flex-direction: column; overflow: hidden;
     }
-    body.modal-open .modal-mask { display: flex; }
+    body.modal-open > .modal-mask:not(#importModal), body.import-open #importModal { display: flex; }
     .modal-header { height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #dce6f2; font-size: 17px; font-weight: 700; }
     .modal-body { padding: 22px 24px; flex: 1; overflow: auto; }
     .modal-footer { height: 58px; border-top: 1px solid #dce6f2; display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 0 20px; }
+    .import-modal { width: 1040px; }
+    .upload-box { width: 580px; height: 290px; margin: 12px auto 22px; border: 1px dashed #c9ced6; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #5d6b80; }
+    .upload-icon { width: 72px; height: 52px; border: 4px solid #b8c0cd; border-top-color: transparent; border-radius: 50%; position: relative; margin-bottom: 22px; }
+    .upload-icon:after { content: ""; position: absolute; right: -8px; bottom: 4px; width: 28px; height: 20px; background: #fff; border-bottom: 4px solid #b8c0cd; border-radius: 0 0 22px 22px; transform: rotate(-18deg); }
+    .upload-text { font-size: 22px; line-height: 32px; }
+    .upload-text .link { margin: 0; font-size: 22px; }
+    .import-check { display: flex; justify-content: center; align-items: center; gap: 10px; color: #42526a; font-size: 16px; margin-bottom: 16px; }
+    .import-check input { width: 16px; height: 16px; }
+    .import-rules { width: 580px; margin: 0 auto 16px; background: #eef6ff; border: 1px solid #bad7fb; border-radius: 4px; color: #42526a; padding: 12px 16px; line-height: 28px; }
+    .import-rules strong { display: block; color: #0b72dc; margin-bottom: 4px; }
+    .template-line { text-align: center; color: #5d6b80; font-size: 17px; margin-bottom: 16px; }
+    .template-line .link { font-size: 17px; font-weight: 700; }
     .field { margin-bottom: 18px; }
     .field label { display: block; margin-bottom: 8px; color: #30465f; }
     .field label:before { content: "*"; color: #ef4444; margin-right: 4px; }
@@ -209,7 +221,7 @@
     </div>
 
     <div class="toolbar">
-      <div class="toolbar-left"><button class="btn btn-primary" onclick="openModal('新增关系')">新增</button><button class="btn btn-outline" onclick="toast('导入弹窗示意')">导入</button><button class="btn btn-disabled" onclick="toast('请选择要删除的数据')">▥ 批量删除</button></div>
+      <div class="toolbar-left"><button class="btn btn-primary" onclick="openModal('新增关系')">新增</button><button class="btn btn-outline" onclick="openImportModal()">导入</button><button class="btn btn-disabled" onclick="toast('请选择要删除的数据')">▥ 批量删除</button></div>
       <div class="toolbar-right"></div>
     </div>
 
@@ -234,6 +246,28 @@
         <div class="field"><label>角色</label><select><option>总店长</option><option>店长</option><option>店助</option></select></div>
       </div>
       <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveForm()">保存</button></div>
+    </div>
+  </div>
+  <div class="modal-mask" id="importModal" onclick="closeImportModal()">
+    <div class="modal import-modal" onclick="event.stopPropagation()">
+      <div class="modal-header"><span>导入</span><span onclick="closeImportModal()" style="cursor:pointer">×</span></div>
+      <div class="modal-body">
+        <div class="upload-box" onclick="document.getElementById('importFile').click()">
+          <div class="upload-icon"></div>
+          <div class="upload-text">将文件拖到此处，或<span class="link">点击上传</span></div>
+          <input id="importFile" type="file" accept=".xls,.xlsx,.csv" style="display:none" onchange="handleImportFile(this)" />
+        </div>
+        <label class="import-check"><input type="checkbox" />是否更新已经存在的员工主责柜组关系数据</label>
+        <div class="import-rules">
+          <strong>导入校验说明</strong>
+          <div>数据权限按柜组控制，仅允许导入当前用户所属柜组。</div>
+          <div>唯一值按“月份 + 主责柜组 + 员工姓名 + 工号”校验，重复数据提交或导入时弹窗提醒。</div>
+          <div>工号必须为8位数字；月份格式为YYYY-MM；门店、团队名称、主责柜组、员工姓名、角色均为必填。</div>
+          <div>模板包含“分区”字段，仅柜组72225101和72225104需要填写；其他柜组无需填写，填写则提示清空。</div>
+        </div>
+        <div class="template-line">仅允许导入xls、xlsx、csv格式文件。 <span class="link" onclick="downloadTemplate()">下载员工-主责柜组关系模板</span></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-primary" onclick="confirmImport()">确定</button><button class="btn btn-ghost" onclick="closeImportModal()">取消</button></div>
     </div>
   </div>
   <div class="toast" id="toast"></div>
@@ -376,6 +410,22 @@
     function openModal(title, name=''){ document.getElementById('modalTitle').innerText = title; document.getElementById('nameInput').value = name; document.body.classList.add('modal-open'); }
     function closeModal(){ document.body.classList.remove('modal-open'); }
     function saveForm(){ closeModal(); toast('保存成功，列表已更新'); }
+    function openImportModal(){ document.body.classList.add('import-open'); }
+    function closeImportModal(){ document.body.classList.remove('import-open'); document.getElementById('importFile').value = ''; }
+    function handleImportFile(input){ if (input.files.length) toast('已选择文件：' + input.files[0].name); }
+    function confirmImport(){ closeImportModal(); toast('导入校验通过，数据已提交'); }
+    function downloadTemplate(){
+      const header = ['门店','团队名称','主责柜组','分区','月份','工号','姓名','角色'];
+      const sample = ['7222','T3入境','72225101','入境区','2026-07','00001234','张三','店长'];
+      const note = ['7222','T3入境','72225104','入境区','2026-07','00005678','李四','店助'];
+      const csv = [header, sample, note].map(row => row.join(',')).join('\n');
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = '员工-主责柜组关系模板.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
     function toast(msg){ const t=document.getElementById('toast'); t.innerText=msg; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); }
     document.addEventListener('click', e => {
       if(!e.target.closest('#cascade')) document.getElementById('cascade').classList.remove('open');
