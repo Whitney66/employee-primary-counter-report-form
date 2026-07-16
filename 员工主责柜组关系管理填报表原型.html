@@ -49,7 +49,7 @@
     .tab.active { background: #1882e8; color: #fff; border-color: #1882e8; }
 
     .page { padding: 14px 18px 24px; }
-    .filter-card, .table-card, .drawer { background: #fff; border: 1px solid #d9e3f0; box-shadow: 0 1px 4px rgba(16,45,80,.04); }
+    .filter-card, .table-card, .modal { background: #fff; border: 1px solid #d9e3f0; box-shadow: 0 1px 4px rgba(16,45,80,.04); }
     .filter-card {
       min-height: 64px; padding: 12px 16px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
     }
@@ -82,8 +82,8 @@
       border: 1px solid #d8e0ea; box-shadow: 0 10px 22px rgba(31, 57, 88, .14); border-radius: 2px;
     }
     .month-picker.open .month-panel { display: flex; }
-    .drawer-month-picker, .drawer-month-picker .month-range-input { width: 100%; }
-    .drawer-month-picker .month-panel { left: auto; right: 0; }
+    .modal-month-picker, .modal-month-picker .month-range-input { width: 100%; }
+    .modal-month-picker .month-panel { left: auto; right: 0; }
     .month-shortcuts { width: 104px; border-right: 1px solid #e0e5ec; padding: 8px 0; }
     .month-shortcut { height: 32px; display: flex; align-items: center; padding-left: 18px; color: #2e4057; cursor: pointer; font-size: 14px; }
     .month-shortcut:hover, .month-shortcut.active { color: #1882e8; background: #eef6ff; }
@@ -143,16 +143,15 @@
     .tree-row { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; cursor: pointer; }
     .tree-row:hover, .tree-row.selected { background: #eef6ff; color: #0b72dc; }
     .tree-row .arrow { margin-left: auto; color: #8aa0ba; }
-    .drawer-mask { display: none; position: fixed; inset: 0; background: rgba(8, 24, 44, .28); z-index: 20; }
-    .drawer {
-      position: fixed; right: -520px; top: 0; bottom: 0; width: 520px; z-index: 21; transition: right .25s ease;
-      display: flex; flex-direction: column;
+    .modal-mask { display: none; position: fixed; inset: 0; background: rgba(8, 24, 44, .28); z-index: 20; align-items: center; justify-content: center; }
+    .modal {
+      width: 560px; max-width: calc(100vw - 48px); max-height: calc(100vh - 64px); border-radius: 4px;
+      display: flex; flex-direction: column; overflow: hidden;
     }
-    body.drawer-open .drawer-mask { display: block; }
-    body.drawer-open .drawer { right: 0; }
-    .drawer-header { height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #dce6f2; font-size: 17px; font-weight: 700; }
-    .drawer-body { padding: 22px 24px; flex: 1; overflow: auto; }
-    .drawer-footer { height: 58px; border-top: 1px solid #dce6f2; display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 0 20px; }
+    body.modal-open .modal-mask { display: flex; }
+    .modal-header { height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #dce6f2; font-size: 17px; font-weight: 700; }
+    .modal-body { padding: 22px 24px; flex: 1; overflow: auto; }
+    .modal-footer { height: 58px; border-top: 1px solid #dce6f2; display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 0 20px; }
     .field { margin-bottom: 18px; }
     .field label { display: block; margin-bottom: 8px; color: #30465f; }
     .field label:before { content: "*"; color: #ef4444; margin-right: 4px; }
@@ -201,6 +200,7 @@
         <label>柜组</label><input class="input multi-select-input" id="counterFilter" placeholder="请选择柜组" readonly onclick="toggleCounterSelect()" />
         <div class="multi-select-panel counter-select-panel" id="counterList"></div>
       </div>
+      <div class="form-item"><label>分区</label><select class="select"><option>全部</option><option>香化区</option><option>烟酒区</option><option>精品区</option><option>入境区</option></select></div>
       <div class="form-item"><label>月份</label><div class="month-picker" id="filterMonthPicker"></div></div>
       <div class="form-item"><label>工号</label><input class="input" placeholder="请输入工号" /></div>
       <div class="form-item"><label>姓名</label><input class="input" placeholder="请输入姓名" /></div>
@@ -208,30 +208,32 @@
     </div>
 
     <div class="toolbar">
-      <div class="toolbar-left"><button class="btn btn-primary" onclick="openDrawer('新增关系')">新增</button><button class="btn btn-outline" onclick="toast('导入弹窗示意')">导入</button><button class="btn btn-disabled" onclick="toast('请选择要删除的数据')">▥ 批量删除</button></div>
+      <div class="toolbar-left"><button class="btn btn-primary" onclick="openModal('新增关系')">新增</button><button class="btn btn-outline" onclick="toast('导入弹窗示意')">导入</button><button class="btn btn-disabled" onclick="toast('请选择要删除的数据')">▥ 批量删除</button></div>
       <div class="toolbar-right"></div>
     </div>
 
     <div class="table-card">
       <table>
-        <thead><tr><th style="width:50px"><span class="checkbox"></span></th><th>团队</th><th>主责柜组</th><th>月份</th><th>姓名</th><th>角色</th><th>团队目标销售额（元）</th><th>最后更新人</th><th>最后更新时间</th><th style="width:180px">操作</th></tr></thead>
+        <thead><tr><th style="width:50px"><span class="checkbox"></span></th><th>团队</th><th>主责柜组</th><th>分区</th><th>月份</th><th>姓名</th><th>角色</th><th>最后更新人</th><th>最后更新时间</th><th style="width:180px">操作</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
   </div>
 
-  <div class="drawer-mask" onclick="closeDrawer()"></div>
-  <div class="drawer">
-    <div class="drawer-header"><span id="drawerTitle">新增关系</span><span onclick="closeDrawer()" style="cursor:pointer">×</span></div>
-    <div class="drawer-body">
-      <div class="field"><label>门店</label><select><option>7222</option></select></div>
-      <div class="field"><label>团队名称</label><select><option>T3香化</option><option>T3烟酒</option><option>T3精品专卖</option><option>T3精品综合</option><option>T3入境</option></select></div>
-      <div class="field"><label>月份</label><div class="month-picker drawer-month-picker" id="drawerMonthPicker"></div></div>
-      <div class="field"><label>姓名</label><input id="nameInput" placeholder="请输入姓名" value="" /></div>
-      <div class="field"><label>角色</label><select><option>总店长</option><option>店长</option><option>店助</option></select></div>
-      <div class="field"><label>团队目标销售额（元）</label><input placeholder="请输入团队目标销售额" value="56000" /></div>
+  <div class="modal-mask" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header"><span id="modalTitle">新增关系</span><span onclick="closeModal()" style="cursor:pointer">×</span></div>
+      <div class="modal-body">
+        <div class="field"><label>门店</label><select><option>7222</option></select></div>
+        <div class="field"><label>团队名称</label><select><option>T3香化</option><option>T3烟酒</option><option>T3精品专卖</option><option>T3精品综合</option><option>T3入境</option></select></div>
+        <div class="field"><label>主责柜组</label><select><option>72222201</option><option>72222401</option><option>72221201</option><option>72221601</option><option>72225101</option></select></div>
+        <div class="field"><label>分区</label><select><option>香化区</option><option>烟酒区</option><option>精品区</option><option>入境区</option></select></div>
+        <div class="field"><label>月份</label><div class="month-picker modal-month-picker" id="modalMonthPicker"></div></div>
+        <div class="field"><label>姓名</label><input id="nameInput" placeholder="请输入姓名" value="" /></div>
+        <div class="field"><label>角色</label><select><option>总店长</option><option>店长</option><option>店助</option></select></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveForm()">保存</button></div>
     </div>
-    <div class="drawer-footer"><button class="btn btn-ghost" onclick="closeDrawer()">取消</button><button class="btn btn-primary" onclick="saveForm()">保存</button></div>
   </div>
   <div class="toast" id="toast"></div>
 
@@ -243,21 +245,28 @@
       'T3精品综合': ['72221401','72221606','72221701','72221702','72221802','72221901','72221902','72222601','72222602','72222603','72222604','72222701','72222702','72223001'],
       'T3入境': ['72225101','72225102','72225103','72225104']
     };
+    const zoneByTeam = {
+      'T3香化': '香化区',
+      'T3烟酒': '烟酒区',
+      'T3精品专卖': '精品区',
+      'T3精品综合': '精品区',
+      'T3入境': '入境区'
+    };
     const names = ['蔡海晓','唐伟','陈亚琳','胡巧菊','王一诺','赵敏','李明','刘佳','周晴','吴越','孙晨','黄静'];
     const roles = ['总店长','店长','店助'];
     const selectedCounters = new Set();
     const rows = Object.entries(counterGroups).flatMap(([team, counters]) => counters.map((counter, index) => [
       team,
       counter,
+      zoneByTeam[team],
       '2026-07',
       names[(index + team.length) % names.length],
       roles[index % roles.length],
-      (23500 + index * 3500).toLocaleString('zh-CN'),
       names[(index + 3) % names.length],
       '2026-07-03 ' + String(10 + index % 7).padStart(2, '0') + ':' + String(16 + index).padStart(2, '0') + ':24'
     ]));
     function render() {
-      document.getElementById('tbody').innerHTML = rows.map(r => `<tr><td><span class="checkbox"></span></td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td><td><a class="link" onclick="openDrawer('复制关系')">复制</a><a class="link" onclick="openDrawer('修改关系','${r[3]}')">修改</a><a class="link" onclick="toast('删除确认示意')">删除</a></td></tr>`).join('');
+      document.getElementById('tbody').innerHTML = rows.map(r => `<tr><td><span class="checkbox"></span></td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td><td><a class="link" onclick="openModal('复制关系')">复制</a><a class="link" onclick="openModal('修改关系','${r[4]}')">修改</a><a class="link" onclick="toast('删除确认示意')">删除</a></td></tr>`).join('');
     }
     const monthLabels = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
     const monthPickerState = {};
@@ -355,9 +364,9 @@
     }
     function toggleCascade(){ document.getElementById('cascade').classList.toggle('open'); }
     function pickTeam(v){ document.getElementById('teamFilter').value = v; document.getElementById('cascade').classList.remove('open'); }
-    function openDrawer(title, name=''){ document.getElementById('drawerTitle').innerText = title; document.getElementById('nameInput').value = name; document.body.classList.add('drawer-open'); }
-    function closeDrawer(){ document.body.classList.remove('drawer-open'); }
-    function saveForm(){ closeDrawer(); toast('保存成功，列表已更新'); }
+    function openModal(title, name=''){ document.getElementById('modalTitle').innerText = title; document.getElementById('nameInput').value = name; document.body.classList.add('modal-open'); }
+    function closeModal(){ document.body.classList.remove('modal-open'); }
+    function saveForm(){ closeModal(); toast('保存成功，列表已更新'); }
     function toast(msg){ const t=document.getElementById('toast'); t.innerText=msg; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); }
     document.addEventListener('click', e => {
       if(!e.target.closest('#cascade')) document.getElementById('cascade').classList.remove('open');
@@ -366,7 +375,7 @@
       if(!e.target.closest('.month-picker')) document.querySelectorAll('.month-picker').forEach(item => item.classList.remove('open'));
     });
     createMonthPicker('filterMonthPicker');
-    createMonthPicker('drawerMonthPicker');
+    createMonthPicker('modalMonthPicker');
     renderCounterOptions();
     render();
   </script>
