@@ -59,6 +59,7 @@
       height: 32px; border: 1px solid #cbd8e8; border-radius: 3px; background: #fff; padding: 0 10px;
       color: #223b5a; min-width: 168px; outline: none;
     }
+    .input:disabled, .select:disabled { background: #eef2f7; color: #9aa9ba; border-color: #d4dde9; cursor: not-allowed; }
     .month-picker { position: relative; display: inline-flex; align-items: center; }
     .month-range-input {
       width: 260px; min-width: 260px; height: 32px; border: 1px solid #cbd8e8; border-radius: 4px; background: #fff;
@@ -200,7 +201,7 @@
         <label>柜组</label><input class="input multi-select-input" id="counterFilter" placeholder="请选择柜组" readonly onclick="toggleCounterSelect()" />
         <div class="multi-select-panel counter-select-panel" id="counterList"></div>
       </div>
-      <div class="form-item"><label>分区</label><select class="select"><option>全部</option><option>香化区</option><option>烟酒区</option><option>精品区</option><option>入境区</option></select></div>
+      <div class="form-item"><label>分区</label><select class="select" id="zoneFilter" disabled><option>全部</option><option>香化区</option><option>烟酒区</option><option>精品区</option><option>入境区</option></select></div>
       <div class="form-item"><label>月份</label><div class="month-picker" id="filterMonthPicker"></div></div>
       <div class="form-item"><label>工号</label><input class="input" placeholder="请输入工号" /></div>
       <div class="form-item"><label>姓名</label><input class="input" placeholder="请输入姓名" /></div>
@@ -254,6 +255,7 @@
     };
     const names = ['蔡海晓','唐伟','陈亚琳','胡巧菊','王一诺','赵敏','李明','刘佳','周晴','吴越','孙晨','黄静'];
     const roles = ['总店长','店长','店助'];
+    const zoneEnabledCounters = new Set(['72225101','72225104']);
     const selectedCounters = new Set();
     const rows = Object.entries(counterGroups).flatMap(([team, counters]) => counters.map((counter, index) => [
       team,
@@ -349,10 +351,17 @@
       document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
     }
     function toggleCounterSelect(){ document.getElementById('counterSelect').classList.toggle('open'); }
+    function updateZoneFilterState(){
+      const zoneFilter = document.getElementById('zoneFilter');
+      const enabled = [...selectedCounters].some(counter => zoneEnabledCounters.has(counter));
+      zoneFilter.disabled = !enabled;
+      if (!enabled) zoneFilter.value = '全部';
+    }
     function toggleCounterOption(event, counter){
       event.stopPropagation();
       selectedCounters.has(counter) ? selectedCounters.delete(counter) : selectedCounters.add(counter);
       document.getElementById('counterFilter').value = [...selectedCounters].join(',');
+      updateZoneFilterState();
       renderCounterOptions();
     }
     function toggleStoreMulti(){ document.getElementById('storeMulti').classList.toggle('open'); }
@@ -376,6 +385,7 @@
     });
     createMonthPicker('filterMonthPicker');
     createMonthPicker('modalMonthPicker');
+    updateZoneFilterState();
     renderCounterOptions();
     render();
   </script>
