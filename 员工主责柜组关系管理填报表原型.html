@@ -384,8 +384,11 @@
       document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
     }
     function renderZoneOptions() {
-      document.getElementById('zoneFilter').value = [...selectedZones].join(',');
-      document.getElementById('zoneList').innerHTML = zoneOptions.map(zone => `<div class="multi-option" onclick="toggleZoneOption(event,'${zone}')"><span class="checkbox ${selectedZones.has(zone) ? 'checked' : ''}"></span>${zone}</div>`).join('');
+      const allSelected = selectedZones.size === zoneOptions.length;
+      document.getElementById('zoneFilter').value = allSelected ? '全部' : [...selectedZones].join(',');
+      const allOption = `<div class="multi-option" onclick="toggleAllZones(event)"><span class="checkbox ${allSelected ? 'checked' : ''}"></span>全部</div>`;
+      const zoneItems = zoneOptions.map(zone => `<div class="multi-option" onclick="toggleZoneOption(event,'${zone}')"><span class="checkbox ${selectedZones.has(zone) ? 'checked' : ''}"></span>${zone}</div>`).join('');
+      document.getElementById('zoneList').innerHTML = allOption + zoneItems;
     }
     function toggleCounterSelect(){ document.getElementById('counterSelect').classList.toggle('open'); }
     function toggleZoneSelect(){ document.getElementById('zoneSelect').classList.toggle('open'); }
@@ -395,10 +398,19 @@
       document.getElementById('counterFilter').value = [...selectedCounters].join(',');
       renderCounterOptions();
     }
+    function toggleAllZones(event){
+      event.stopPropagation();
+      if (selectedZones.size === zoneOptions.length) {
+        selectedZones.clear();
+      } else {
+        selectedZones.clear();
+        zoneOptions.forEach(zone => selectedZones.add(zone));
+      }
+      renderZoneOptions();
+    }
     function toggleZoneOption(event, zone){
       event.stopPropagation();
       selectedZones.has(zone) ? selectedZones.delete(zone) : selectedZones.add(zone);
-      document.getElementById('zoneFilter').value = [...selectedZones].join(',');
       renderZoneOptions();
     }
     function queryRows(){
