@@ -213,11 +213,14 @@
         <label>柜组</label><input class="input multi-select-input" id="counterFilter" placeholder="请选择柜组" readonly onclick="toggleCounterSelect()" />
         <div class="multi-select-panel counter-select-panel" id="counterList"></div>
       </div>
-      <div class="form-item"><label>分区</label><select class="select" id="zoneFilter" disabled><option>全部</option><option>香化区</option><option>烟酒区</option></select></div>
+      <div class="form-item multi-select-wrap" id="zoneSelect">
+        <label>分区</label><input class="input multi-select-input" id="zoneFilter" placeholder="请选择分区" readonly onclick="toggleZoneSelect()" />
+        <div class="multi-select-panel" id="zoneList"></div>
+      </div>
       <div class="form-item"><label>月份</label><div class="month-picker" id="filterMonthPicker"></div></div>
-      <div class="form-item"><label>工号</label><input class="input" placeholder="请输入工号" /></div>
-      <div class="form-item"><label>店长姓名</label><input class="input" placeholder="请输入店长姓名" /></div>
-      <button class="btn btn-primary" onclick="toast('查询成功')">⌕ 查询</button><button class="btn btn-light" onclick="toast('已重置查询条件')">↻ 重置</button>
+      <div class="form-item"><label>工号</label><input class="input" id="jobNoFilter" placeholder="请输入工号" /></div>
+      <div class="form-item"><label>店长姓名</label><input class="input" id="managerNameFilter" placeholder="请输入店长姓名" /></div>
+      <button class="btn btn-primary" onclick="queryRows()">⌕ 查询</button><button class="btn btn-light" onclick="resetFilters()">↻ 重置</button>
     </div>
 
     <div class="toolbar">
@@ -227,7 +230,7 @@
 
     <div class="table-card">
       <table>
-        <thead><tr><th style="width:50px"><span class="checkbox"></span></th><th>团队</th><th>主责柜组</th><th>分区</th><th>月份</th><th>店长姓名</th><th>角色</th><th>最后更新人</th><th>最后更新时间</th><th style="width:180px">操作</th></tr></thead>
+        <thead><tr><th style="width:50px"><span class="checkbox"></span></th><th>团队</th><th>主责柜组</th><th>分区</th><th>月份</th><th>工号</th><th>店长姓名</th><th>角色</th><th>最后更新人</th><th>最后更新时间</th><th style="width:180px">操作</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -282,20 +285,23 @@
     };
     const names = ['蔡海晓','唐伟','陈亚琳','胡巧菊','王一诺','赵敏','李明','刘佳','周晴','吴越','孙晨','黄静'];
     const roles = ['总店长','店长','店助'];
+    const zoneOptions = ['香化区','烟酒区','精品区','入境区','-'];
     const zoneEnabledCounters = new Set(['72225101','72225104']);
     const selectedCounters = new Set();
+    const selectedZones = new Set();
     const rows = Object.entries(counterGroups).flatMap(([team, counters]) => counters.map((counter, index) => [
       team,
       counter,
       zoneEnabledCounters.has(counter) ? (counter === '72225101' ? '香化区' : '烟酒区') : '-',
       '2026-07',
+      '0000' + String(1200 + index + team.length).padStart(4, '0'),
       names[(index + team.length) % names.length],
       roles[index % roles.length],
       names[(index + 3) % names.length],
       '2026-07-03 ' + String(10 + index % 7).padStart(2, '0') + ':' + String(16 + index).padStart(2, '0') + ':24'
     ]));
-    function render() {
-      document.getElementById('tbody').innerHTML = rows.map(r => `<tr><td><span class="checkbox"></span></td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td><td><a class="link" onclick="openModal('复制关系')">复制</a><a class="link" onclick="openModal('修改关系','${r[4]}')">修改</a><a class="link" onclick="toast('删除确认示意')">删除</a></td></tr>`).join('');
+    function render(data = rows) {
+      document.getElementById('tbody').innerHTML = data.map(r => `<tr><td><span class="checkbox"></span></td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td>${r[7]}</td><td>${r[8]}</td><td><a class="link" onclick="openModal('复制关系')">复制</a><a class="link" onclick="openModal('修改关系','${r[5]}')">修改</a><a class="link" onclick="toast('删除确认示意')">删除</a></td></tr>`).join('');
     }
     const monthLabels = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
     const monthPickerState = {};
@@ -377,19 +383,50 @@
       const counters = Object.values(counterGroups).flat();
       document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
     }
-    function toggleCounterSelect(){ document.getElementById('counterSelect').classList.toggle('open'); }
-    function updateZoneFilterState(){
-      const zoneFilter = document.getElementById('zoneFilter');
-      const enabled = [...selectedCounters].some(counter => zoneEnabledCounters.has(counter));
-      zoneFilter.disabled = !enabled;
-      if (!enabled) zoneFilter.value = '全部';
+    function renderZoneOptions() {
+      document.getElementById('zoneList').innerHTML = zoneOptions.map(zone => `<div class="multi-option" onclick="toggleZoneOption(event,'${zone}')"><span class="checkbox ${selectedZones.has(zone) ? 'checked' : ''}"></span>${zone}</div>`).join('');
     }
+    function toggleCounterSelect(){ document.getElementById('counterSelect').classList.toggle('open'); }
+    function toggleZoneSelect(){ document.getElementById('zoneSelect').classList.toggle('open'); }
     function toggleCounterOption(event, counter){
       event.stopPropagation();
       selectedCounters.has(counter) ? selectedCounters.delete(counter) : selectedCounters.add(counter);
       document.getElementById('counterFilter').value = [...selectedCounters].join(',');
-      updateZoneFilterState();
       renderCounterOptions();
+    }
+    function toggleZoneOption(event, zone){
+      event.stopPropagation();
+      selectedZones.has(zone) ? selectedZones.delete(zone) : selectedZones.add(zone);
+      document.getElementById('zoneFilter').value = [...selectedZones].join(',');
+      renderZoneOptions();
+    }
+    function queryRows(){
+      const team = document.getElementById('teamFilter').value;
+      const jobNo = document.getElementById('jobNoFilter').value.trim();
+      const managerName = document.getElementById('managerNameFilter').value.trim();
+      const result = rows.filter(r => {
+        if (team && r[0] !== team) return false;
+        if (selectedCounters.size && !selectedCounters.has(r[1])) return false;
+        if (selectedZones.size && !selectedZones.has(r[2])) return false;
+        if (jobNo && !r[4].includes(jobNo)) return false;
+        if (managerName && !r[5].includes(managerName)) return false;
+        return true;
+      });
+      render(result);
+      toast('查询成功，共' + result.length + '条数据');
+    }
+    function resetFilters(){
+      document.getElementById('teamFilter').value = '';
+      document.getElementById('counterFilter').value = '';
+      document.getElementById('zoneFilter').value = '';
+      document.getElementById('jobNoFilter').value = '';
+      document.getElementById('managerNameFilter').value = '';
+      selectedCounters.clear();
+      selectedZones.clear();
+      renderCounterOptions();
+      renderZoneOptions();
+      render(rows);
+      toast('已重置查询条件');
     }
     function toggleStoreMulti(){ document.getElementById('storeMulti').classList.toggle('open'); }
     function toggleStoreOption(event){
@@ -432,13 +469,14 @@
     document.addEventListener('click', e => {
       if(!e.target.closest('#cascade')) document.getElementById('cascade').classList.remove('open');
       if(!e.target.closest('#counterSelect')) document.getElementById('counterSelect').classList.remove('open');
+      if(!e.target.closest('#zoneSelect')) document.getElementById('zoneSelect').classList.remove('open');
       if(!e.target.closest('#storeMulti')) document.getElementById('storeMulti').classList.remove('open');
       if(!e.target.closest('.month-picker')) document.querySelectorAll('.month-picker').forEach(item => item.classList.remove('open'));
     });
     createMonthPicker('filterMonthPicker');
     createMonthPicker('modalMonthPicker');
-    updateZoneFilterState();
     renderCounterOptions();
+    renderZoneOptions();
     render();
   </script>
 </body>
