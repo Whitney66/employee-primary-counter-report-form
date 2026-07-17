@@ -243,7 +243,7 @@
         <div class="field"><label>门店</label><select><option>7222</option></select></div>
         <div class="field"><label>团队名称</label><select><option>T3香化</option><option>T3烟酒</option><option>T3精品专卖</option><option>T3精品综合</option><option>T3入境</option></select></div>
         <div class="field"><label>主责柜组</label><select><option>72222201</option><option>72222401</option><option>72221201</option><option>72221601</option><option>72225101</option></select></div>
-        <div class="field"><label>分区</label><select><option>香化区</option><option>烟酒区</option></select></div>
+        <div class="field"><label>分区</label><select><option>烟区</option><option>精品区</option><option>酒水区</option><option>香化A</option><option>香化B</option></select></div>
         <div class="field"><label>月份</label><div class="month-picker modal-month-picker" id="modalMonthPicker"></div></div>
         <div class="field"><label>店长姓名</label><input id="nameInput" placeholder="请输入店长姓名" value="" /></div>
         <div class="field"><label>角色</label><select><option>总店长</option><option>店长</option><option>店助</option></select></div>
@@ -285,14 +285,14 @@
     };
     const names = ['蔡海晓','唐伟','陈亚琳','胡巧菊','王一诺','赵敏','李明','刘佳','周晴','吴越','孙晨','黄静'];
     const roles = ['总店长','店长','店助'];
-    const zoneOptions = ['香化区','烟酒区','精品区','入境区','-'];
+    const zoneOptions = ['烟区','精品区','酒水区','香化A','香化B'];
     const zoneEnabledCounters = new Set(['72225101','72225104']);
     const selectedCounters = new Set();
-    const selectedZones = new Set();
+    const selectedZones = new Set(zoneOptions);
     const rows = Object.entries(counterGroups).flatMap(([team, counters]) => counters.map((counter, index) => [
       team,
       counter,
-      zoneEnabledCounters.has(counter) ? (counter === '72225101' ? '香化区' : '烟酒区') : '-',
+      zoneEnabledCounters.has(counter) ? (counter === '72225101' ? '香化A' : '香化B') : '-',
       '2026-07',
       '0000' + String(1200 + index + team.length).padStart(4, '0'),
       names[(index + team.length) % names.length],
@@ -384,6 +384,7 @@
       document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
     }
     function renderZoneOptions() {
+      document.getElementById('zoneFilter').value = [...selectedZones].join(',');
       document.getElementById('zoneList').innerHTML = zoneOptions.map(zone => `<div class="multi-option" onclick="toggleZoneOption(event,'${zone}')"><span class="checkbox ${selectedZones.has(zone) ? 'checked' : ''}"></span>${zone}</div>`).join('');
     }
     function toggleCounterSelect(){ document.getElementById('counterSelect').classList.toggle('open'); }
@@ -418,11 +419,11 @@
     function resetFilters(){
       document.getElementById('teamFilter').value = '';
       document.getElementById('counterFilter').value = '';
-      document.getElementById('zoneFilter').value = '';
       document.getElementById('jobNoFilter').value = '';
       document.getElementById('managerNameFilter').value = '';
       selectedCounters.clear();
       selectedZones.clear();
+      zoneOptions.forEach(zone => selectedZones.add(zone));
       renderCounterOptions();
       renderZoneOptions();
       render(rows);
@@ -454,8 +455,8 @@
         ['填写区'],
       ];
       const header = ['门店','团队名称','主责柜组','分区（仅T3入境团队填写）','月份','工号','店长姓名','角色'];
-      const sample = ['7222','T3入境','72225101','香化区','2026年07月','00001234','张三','店长'];
-      const note = ['7222','T3入境','72225104','烟酒区','2026年07月','00005678','李四','店助'];
+      const sample = ['7222','T3入境','72225101','香化A','2026年07月','00001234','张三','店长'];
+      const note = ['7222','T3入境','72225104','香化B','2026年07月','00005678','李四','店助'];
       const other = ['7222','T3香化','72222201','-','2026年07月','00008765','王五','店助'];
       const csv = [...rules, header, sample, note, other].map(row => row.join(',')).join('\n');
       const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
