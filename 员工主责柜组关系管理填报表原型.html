@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>员工主责柜组关系维护填报表原型</title>
+  <title>店长主责柜组关系维护填报表原型</title>
   <!-- published: 2026-07-09 maintenance wording -->
   <style>
     * { box-sizing: border-box; }
@@ -187,7 +187,7 @@
     </div>
     <div class="search"><input placeholder="搜索" /><span class="icon">♧</span><span class="icon">⛶</span><span class="icon">●</span></div>
   </div>
-  <div class="tabs"><div class="tab">经营看板 ×</div><div class="tab active">员工主责柜组关系维护 ×</div></div>
+  <div class="tabs"><div class="tab">经营看板 ×</div><div class="tab active">店长主责柜组关系维护 ×</div></div>
 
   <div class="page">
     <div class="filter-card">
@@ -213,10 +213,10 @@
         <label>柜组</label><input class="input multi-select-input" id="counterFilter" placeholder="请选择柜组" readonly onclick="toggleCounterSelect()" />
         <div class="multi-select-panel counter-select-panel" id="counterList"></div>
       </div>
-      <div class="form-item"><label>分区</label><select class="select" id="zoneFilter" disabled><option>全部</option><option>香化区</option><option>烟酒区</option><option>精品区</option><option>入境区</option></select></div>
+      <div class="form-item"><label>分区（仅T3入境团队填写）</label><select class="select" id="zoneFilter" disabled><option>全部</option><option>香化区</option><option>烟酒区</option></select></div>
       <div class="form-item"><label>月份</label><div class="month-picker" id="filterMonthPicker"></div></div>
       <div class="form-item"><label>工号</label><input class="input" placeholder="请输入工号" /></div>
-      <div class="form-item"><label>姓名</label><input class="input" placeholder="请输入姓名" /></div>
+      <div class="form-item"><label>店长姓名</label><input class="input" placeholder="请输入店长姓名" /></div>
       <button class="btn btn-primary" onclick="toast('查询成功')">⌕ 查询</button><button class="btn btn-light" onclick="toast('已重置查询条件')">↻ 重置</button>
     </div>
 
@@ -227,7 +227,7 @@
 
     <div class="table-card">
       <table>
-        <thead><tr><th style="width:50px"><span class="checkbox"></span></th><th>团队</th><th>主责柜组</th><th>分区</th><th>月份</th><th>姓名</th><th>角色</th><th>最后更新人</th><th>最后更新时间</th><th style="width:180px">操作</th></tr></thead>
+        <thead><tr><th style="width:50px"><span class="checkbox"></span></th><th>团队</th><th>主责柜组</th><th>分区（仅T3入境团队填写）</th><th>月份</th><th>店长姓名</th><th>角色</th><th>最后更新人</th><th>最后更新时间</th><th style="width:180px">操作</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
@@ -240,9 +240,9 @@
         <div class="field"><label>门店</label><select><option>7222</option></select></div>
         <div class="field"><label>团队名称</label><select><option>T3香化</option><option>T3烟酒</option><option>T3精品专卖</option><option>T3精品综合</option><option>T3入境</option></select></div>
         <div class="field"><label>主责柜组</label><select><option>72222201</option><option>72222401</option><option>72221201</option><option>72221601</option><option>72225101</option></select></div>
-        <div class="field"><label>分区</label><select><option>香化区</option><option>烟酒区</option><option>精品区</option><option>入境区</option></select></div>
+        <div class="field"><label>分区（仅T3入境团队填写）</label><select><option>香化区</option><option>烟酒区</option></select></div>
         <div class="field"><label>月份</label><div class="month-picker modal-month-picker" id="modalMonthPicker"></div></div>
-        <div class="field"><label>姓名</label><input id="nameInput" placeholder="请输入姓名" value="" /></div>
+        <div class="field"><label>店长姓名</label><input id="nameInput" placeholder="请输入店长姓名" value="" /></div>
         <div class="field"><label>角色</label><select><option>总店长</option><option>店长</option><option>店助</option></select></div>
       </div>
       <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveForm()">保存</button></div>
@@ -257,15 +257,15 @@
           <div class="upload-text">将文件拖到此处，或<span class="link">点击上传</span></div>
           <input id="importFile" type="file" accept=".xls,.xlsx,.csv" style="display:none" onchange="handleImportFile(this)" />
         </div>
-        <label class="import-check"><input type="checkbox" />是否更新已经存在的员工主责柜组关系数据</label>
+        <label class="import-check"><input type="checkbox" />是否更新已经存在的店长主责柜组关系数据</label>
         <div class="import-rules">
           <strong>导入校验说明</strong>
           <div>数据权限按柜组控制，仅允许导入当前用户所属柜组。</div>
-          <div>唯一值按“月份 + 主责柜组 + 员工姓名 + 工号”校验，重复数据提交或导入时弹窗提醒。</div>
-          <div>工号必须为8位数字；月份格式为中文年月，如2026年07月；门店、团队名称、主责柜组、员工姓名、角色均为必填。</div>
-          <div>模板包含“分区”字段，仅柜组72225101和72225104需要填写；其他柜组无需填写，填写则提示清空。</div>
+          <div>唯一值按“月份 + 主责柜组 + 店长姓名 + 工号”校验，重复数据提交或导入时弹窗提醒。</div>
+          <div>工号必须为8位数字；月份格式为中文年月，如2026年07月；门店、团队名称、主责柜组、店长姓名、角色均为必填。</div>
+          <div>模板包含“分区（仅T3入境团队填写）”字段，仅柜组72225101和72225104需要填写；其他柜组填写“-”。</div>
         </div>
-        <div class="template-line">仅允许导入xls、xlsx、csv格式文件。 <span class="link" onclick="downloadTemplate()">下载员工-主责柜组关系模板</span></div>
+        <div class="template-line">仅允许导入xls、xlsx、csv格式文件。 <span class="link" onclick="downloadTemplate()">下载店长-主责柜组关系模板</span></div>
       </div>
       <div class="modal-footer"><button class="btn btn-primary" onclick="confirmImport()">确定</button><button class="btn btn-ghost" onclick="closeImportModal()">取消</button></div>
     </div>
@@ -280,13 +280,6 @@
       'T3精品综合': ['72221401','72221606','72221701','72221702','72221802','72221901','72221902','72222601','72222602','72222603','72222604','72222701','72222702','72223001'],
       'T3入境': ['72225101','72225102','72225103','72225104']
     };
-    const zoneByTeam = {
-      'T3香化': '香化区',
-      'T3烟酒': '烟酒区',
-      'T3精品专卖': '精品区',
-      'T3精品综合': '精品区',
-      'T3入境': '入境区'
-    };
     const names = ['蔡海晓','唐伟','陈亚琳','胡巧菊','王一诺','赵敏','李明','刘佳','周晴','吴越','孙晨','黄静'];
     const roles = ['总店长','店长','店助'];
     const zoneEnabledCounters = new Set(['72225101','72225104']);
@@ -294,7 +287,7 @@
     const rows = Object.entries(counterGroups).flatMap(([team, counters]) => counters.map((counter, index) => [
       team,
       counter,
-      zoneByTeam[team],
+      zoneEnabledCounters.has(counter) ? (counter === '72225101' ? '香化区' : '烟酒区') : '-',
       '2026-07',
       names[(index + team.length) % names.length],
       roles[index % roles.length],
@@ -417,20 +410,21 @@
     function downloadTemplate(){
       const rules = [
         ['填写说明','请从“填写区”下方开始录入或粘贴数据，说明区内容不要删除。'],
-        ['校验规则','唯一值按“月份 + 主责柜组 + 员工姓名 + 工号”校验，重复数据提交或导入时弹窗提醒。'],
-        ['必填规则','门店、团队名称、主责柜组、月份、工号、姓名、角色为必填；工号必须为8位数字；月份格式为中文年月，如2026年07月。'],
-        ['分区规则','仅柜组72225101和72225104需要填写分区；其他柜组无需填写，填写则提示清空。'],
+        ['校验规则','唯一值按“月份 + 主责柜组 + 店长姓名 + 工号”校验，重复数据提交或导入时弹窗提醒。'],
+        ['必填规则','门店、团队名称、主责柜组、月份、工号、店长姓名、角色为必填；工号必须为8位数字；月份格式为中文年月，如2026年07月。'],
+        ['分区规则','仅柜组72225101和72225104需要填写分区（仅T3入境团队填写）；其他柜组填写“-”。'],
         [],
         ['填写区'],
       ];
-      const header = ['门店','团队名称','主责柜组','分区','月份','工号','姓名','角色'];
-      const sample = ['7222','T3入境','72225101','入境区','2026年07月','00001234','张三','店长'];
-      const note = ['7222','T3入境','72225104','入境区','2026年07月','00005678','李四','店助'];
-      const csv = [...rules, header, sample, note].map(row => row.join(',')).join('\n');
+      const header = ['门店','团队名称','主责柜组','分区（仅T3入境团队填写）','月份','工号','店长姓名','角色'];
+      const sample = ['7222','T3入境','72225101','香化区','2026年07月','00001234','张三','店长'];
+      const note = ['7222','T3入境','72225104','烟酒区','2026年07月','00005678','李四','店助'];
+      const other = ['7222','T3香化','72222201','-','2026年07月','00008765','王五','店助'];
+      const csv = [...rules, header, sample, note, other].map(row => row.join(',')).join('\n');
       const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = '员工-主责柜组关系模板.csv';
+      link.download = '店长-主责柜组关系模板.csv';
       link.click();
       URL.revokeObjectURL(link.href);
     }
