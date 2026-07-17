@@ -380,7 +380,8 @@
       document.getElementById(id).classList.remove('open');
     }
     function renderCounterOptions() {
-      const counters = Object.values(counterGroups).flat();
+      const team = document.getElementById('teamFilter').value;
+      const counters = team ? counterGroups[team] : Object.values(counterGroups).flat();
       document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
     }
     function renderZoneOptions() {
@@ -449,7 +450,13 @@
       document.getElementById('storeFilter').value = check.classList.contains('checked') ? '7222' : '';
     }
     function toggleCascade(){ document.getElementById('cascade').classList.toggle('open'); }
-    function pickTeam(v){ document.getElementById('teamFilter').value = v; document.getElementById('cascade').classList.remove('open'); }
+    function pickTeam(v){
+      document.getElementById('teamFilter').value = v;
+      document.getElementById('counterFilter').value = '';
+      selectedCounters.clear();
+      renderCounterOptions();
+      document.getElementById('cascade').classList.remove('open');
+    }
     function openModal(title, name=''){ document.getElementById('modalTitle').innerText = title; document.getElementById('nameInput').value = name; document.body.classList.add('modal-open'); }
     function closeModal(){ document.body.classList.remove('modal-open'); }
     function saveForm(){ closeModal(); toast('保存成功，列表已更新'); }
