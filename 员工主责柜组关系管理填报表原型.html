@@ -197,17 +197,9 @@
           <div class="multi-option" onclick="toggleStoreOption(event)"><span class="checkbox checked" id="storeCheck"></span>7222</div>
         </div>
       </div>
-      <div class="form-item cascade-wrap" id="cascade">
-        <label>团队名称</label><input class="input" id="teamFilter" placeholder="请选择团队名称" readonly onclick="toggleCascade()" />
-        <div class="cascade-panel" style="width:220px; height:auto;">
-          <div class="col" style="width:100%; border-right:none;">
-            <div class="tree-row" onclick="pickTeam('T3香化')"><span class="checkbox"></span>T3香化</div>
-            <div class="tree-row" onclick="pickTeam('T3烟酒')"><span class="checkbox"></span>T3烟酒</div>
-            <div class="tree-row" onclick="pickTeam('T3精品专卖')"><span class="checkbox"></span>T3精品专卖</div>
-            <div class="tree-row" onclick="pickTeam('T3精品综合')"><span class="checkbox"></span>T3精品综合</div>
-            <div class="tree-row" onclick="pickTeam('T3入境')"><span class="checkbox"></span>T3入境</div>
-          </div>
-        </div>
+      <div class="form-item multi-select-wrap" id="teamSelect">
+        <label>团队名称</label><input class="input multi-select-input" id="teamFilter" placeholder="请选择团队名称" readonly onclick="toggleTeamSelect()" />
+        <div class="multi-select-panel" id="teamList"></div>
       </div>
       <div class="form-item multi-select-wrap" id="counterSelect">
         <label>柜组</label><input class="input multi-select-input" id="counterFilter" placeholder="请选择柜组" readonly onclick="toggleCounterSelect()" />
@@ -285,8 +277,10 @@
     };
     const names = ['蔡海晓','唐伟','陈亚琳','胡巧菊','王一诺','赵敏','李明','刘佳','周晴','吴越','孙晨','黄静'];
     const roles = ['总店长','店长','店助'];
+    const teamOptions = Object.keys(counterGroups);
     const zoneOptions = ['烟区','精品区','酒水区','香化A','香化B'];
     const zoneEnabledCounters = new Set(['72225101','72225104']);
+    const selectedTeams = new Set();
     const selectedCounters = new Set();
     const selectedZones = new Set(zoneOptions);
     const rows = Object.entries(counterGroups).flatMap(([team, counters]) => counters.map((counter, index) => [
@@ -379,10 +373,26 @@
       renderMonthPicker(id);
       document.getElementById(id).classList.remove('open');
     }
+    function renderTeamOptions() {
+      const allSelected = selectedTeams.size === teamOptions.length;
+      document.getElementById('teamFilter').value = allSelected ? '全部' : [...selectedTeams].join(',');
+      const allOption = `<div class="multi-option" onclick="toggleAllTeams(event)"><span class="checkbox ${allSelected ? 'checked' : ''}"></span>全部</div>`;
+      const teamItems = teamOptions.map(team => `<div class="multi-option" onclick="toggleTeamOption(event,'${team}')"><span class="checkbox ${selectedTeams.has(team) ? 'checked' : ''}"></span>${team}</div>`).join('');
+      document.getElementById('teamList').innerHTML = allOption + teamItems;
+    }
+    function getAvailableCounters() {
+      const teams = selectedTeams.size ? [...selectedTeams] : teamOptions;
+      return teams.flatMap(team => counterGroups[team]);
+    }
     function renderCounterOptions() {
-      const team = document.getElementById('teamFilter').value;
-      const counters = team ? counterGroups[team] : Object.values(counterGroups).flat();
+      const counters = getAvailableCounters();
       document.getElementById('counterList').innerHTML = counters.map(counter => `<div class="multi-option" onclick="toggleCounterOption(event,'${counter}')"><span class="checkbox ${selectedCounters.has(counter) ? 'checked' : ''}"></span>${counter}</div>`).join('');
+    }
+    function syncCountersWithTeams(){
+      const available = new Set(getAvailableCounters());
+      [...selectedCounters].forEach(counter => { if (!available.has(counter)) selectedCounters.delete(counter); });
+      document.getElementById('counterFilter').value = [...selectedCounters].join(',');
+      renderCounterOptions();
     }
     function renderZoneOptions() {
       const allSelected = selectedZones.size === zoneOptions.length;
@@ -391,8 +401,26 @@
       const zoneItems = zoneOptions.map(zone => `<div class="multi-option" onclick="toggleZoneOption(event,'${zone}')"><span class="checkbox ${selectedZones.has(zone) ? 'checked' : ''}"></span>${zone}</div>`).join('');
       document.getElementById('zoneList').innerHTML = allOption + zoneItems;
     }
+    function toggleTeamSelect(){ document.getElementById('teamSelect').classList.toggle('open'); }
     function toggleCounterSelect(){ document.getElementById('counterSelect').classList.toggle('open'); }
     function toggleZoneSelect(){ document.getElementById('zoneSelect').classList.toggle('open'); }
+    function toggleAllTeams(event){
+      event.stopPropagation();
+      if (selectedTeams.size === teamOptions.length) {
+        selectedTeams.clear();
+      } else {
+        selectedTeams.clear();
+        teamOptions.forEach(team => selectedTeams.add(team));
+      }
+      renderTeamOptions();
+      syncCountersWithTeams();
+    }
+    function toggleTeamOption(event, team){
+      event.stopPropagation();
+      selectedTeams.has(team) ? selectedTeams.delete(team) : selectedTeams.add(team);
+      renderTeamOptions();
+      syncCountersWithTeams();
+    }
     function toggleCounterOption(event, counter){
       event.stopPropagation();
       selectedCounters.has(counter) ? selectedCounters.delete(counter) : selectedCounters.add(counter);
@@ -415,11 +443,10 @@
       renderZoneOptions();
     }
     function queryRows(){
-      const team = document.getElementById('teamFilter').value;
       const jobNo = document.getElementById('jobNoFilter').value.trim();
       const managerName = document.getElementById('managerNameFilter').value.trim();
       const result = rows.filter(r => {
-        if (team && r[0] !== team) return false;
+        if (selectedTeams.size && selectedTeams.size < teamOptions.length && !selectedTeams.has(r[0])) return false;
         if (selectedCounters.size && !selectedCounters.has(r[1])) return false;
         if (selectedZones.size && selectedZones.size < zoneOptions.length && !selectedZones.has(r[2])) return false;
         if (jobNo && !r[4].includes(jobNo)) return false;
@@ -430,13 +457,14 @@
       toast('查询成功，共' + result.length + '条数据');
     }
     function resetFilters(){
-      document.getElementById('teamFilter').value = '';
       document.getElementById('counterFilter').value = '';
       document.getElementById('jobNoFilter').value = '';
       document.getElementById('managerNameFilter').value = '';
+      selectedTeams.clear();
       selectedCounters.clear();
       selectedZones.clear();
       zoneOptions.forEach(zone => selectedZones.add(zone));
+      renderTeamOptions();
       renderCounterOptions();
       renderZoneOptions();
       render(rows);
@@ -448,14 +476,6 @@
       const check = document.getElementById('storeCheck');
       check.classList.toggle('checked');
       document.getElementById('storeFilter').value = check.classList.contains('checked') ? '7222' : '';
-    }
-    function toggleCascade(){ document.getElementById('cascade').classList.toggle('open'); }
-    function pickTeam(v){
-      document.getElementById('teamFilter').value = v;
-      document.getElementById('counterFilter').value = '';
-      selectedCounters.clear();
-      renderCounterOptions();
-      document.getElementById('cascade').classList.remove('open');
     }
     function openModal(title, name=''){ document.getElementById('modalTitle').innerText = title; document.getElementById('nameInput').value = name; document.body.classList.add('modal-open'); }
     function closeModal(){ document.body.classList.remove('modal-open'); }
@@ -487,7 +507,7 @@
     }
     function toast(msg){ const t=document.getElementById('toast'); t.innerText=msg; t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); }
     document.addEventListener('click', e => {
-      if(!e.target.closest('#cascade')) document.getElementById('cascade').classList.remove('open');
+      if(!e.target.closest('#teamSelect')) document.getElementById('teamSelect').classList.remove('open');
       if(!e.target.closest('#counterSelect')) document.getElementById('counterSelect').classList.remove('open');
       if(!e.target.closest('#zoneSelect')) document.getElementById('zoneSelect').classList.remove('open');
       if(!e.target.closest('#storeMulti')) document.getElementById('storeMulti').classList.remove('open');
@@ -495,6 +515,7 @@
     });
     createMonthPicker('filterMonthPicker');
     createMonthPicker('modalMonthPicker');
+    renderTeamOptions();
     renderCounterOptions();
     renderZoneOptions();
     render();
